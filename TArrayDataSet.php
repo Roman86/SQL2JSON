@@ -199,25 +199,3 @@ class TArrayDataSet{
 			return $this->_toJson($filter, 0);
 	}
 }
-
-/*
-$arr = array(
-	"fields" => array("class", "classdescr", "")
-	, "records" => array(
-		array("AMD", "7990")
-		, array("AMD", "7970")
-		, array("AMD", "280x")
-		, array("nvidia", "GTX 780 Ti")
-		, array("nvidia", "GTX 560 Ti")
-	)
-);
-
-$ds = new TArrayDataSet();
-
-$ds->setData($arr);
-
-$json = $ds->toJson("animals:class(class,classdescr)/devices:brand(Brand)/models:model(model)", false);
-
-//print_r($json);
-echo json_encode($json);
-*/

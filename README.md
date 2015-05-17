@@ -50,7 +50,12 @@ $ds = new TArrayDataSet();
 // SET DATA
 $ds->setData($data);
 // GET JSON ARRAY
-$json = $ds->toJson("animals:class(class,classdescr)/members:name*(food,weight,size,anger)", false);
+$json = $ds->toJson("animals:class(class,classdescr)/members:name*(food,weight,size,anger)", false,
+	array('animals.class' => function($val){ // will capitalize 'class' field value under 'animals' group
+			return ucfirst($val);
+		}
+	)
+);
 print_r($json);
 ```
 will output
@@ -61,7 +66,7 @@ Array
         (
             [0] => Array
                 (
-                    [class] => dinosaur
+                    [class] => Dinosaur
                     [classdescr] => Long time ago
                     [members] => Array
                         (
@@ -95,7 +100,7 @@ Array
 
             [1] => Array
                 (
-                    [class] => dog
+                    [class] => Dog
                     [classdescr] => man's friend
                     [members] => Array
                         (
@@ -132,5 +137,23 @@ Array
     [0] => Array
         (
             [class] => dinosaur
+            ...
+```
+####_recordCallbacks_ param
+This allows you to control fields' values output. For example:
+```
+array('animals.class' => function($val){
+        return ucfirst($val);
+    }
+)
+```
+will capitalize "class" field under "animals" group. Output will be:
+
+```
+Array
+(
+    [0] => Array
+        (
+            [class] => Dinosaur
             ...
 ```

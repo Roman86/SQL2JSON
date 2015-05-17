@@ -25,7 +25,7 @@ try{
 	$ds->setData($data);
 	// GET JSON ARRAY
 	$json = $ds->toJson("animals:class(class,classdescr)/members:name*(food,weight,size,anger)", true,
-		array('class' => function($val){
+		array('animals.class' => function($val){ // will capitalize 'class' field value under 'animals' group
 				return ucfirst($val);
 			}
 		)

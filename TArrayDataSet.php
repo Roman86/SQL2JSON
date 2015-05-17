@@ -14,10 +14,11 @@ class TArrayDataSet{
 	}
 
 	/**
+	 * Makes data array of mysqli result
 	 * @param mysqli_result $res
 	 * @return array
 	 */
-	public static function dataFromMySqlResource($res){
+	public static function dataFromMySqlResource(mysqli_result $res){
 		$fetchedFields = $res->fetch_fields();
 		// поля
 		$fields = array();
@@ -52,7 +53,11 @@ class TArrayDataSet{
 		return array("fields" => $fields, "records" => $records);
 	}
 
-	public function setData(&$data){
+	/**
+	 * @param Array $data array with "fields" and "records" keys (arrays) inside
+	 * @throws InvalidArgumentException, UnexpectedValueException
+	 */
+	public function setData(Array &$data){
 		if (gettype($data) != 'array')
 			throw new InvalidArgumentException("data should be of array type");
 
@@ -68,11 +73,19 @@ class TArrayDataSet{
 		$this->records = &$data['records'];
 	}
 
+	/**
+	 * @throws LogicException
+	 */
 	protected function assertData(){
 		if (!isset($this->records) || !isset($this->fields))
 			throw new LogicException("data must be set before use!");
 	}
 
+	/**
+	 * @param string $fieldName
+	 * @return int|string
+	 * @throws Exception
+	 */
 	protected function fieldIndex($fieldName){
 		$this->assertData();
 		foreach($this->fields as $key => $fName)
@@ -81,7 +94,13 @@ class TArrayDataSet{
 		throw new Exception("field '$fieldName' not found (was not described) in data");
 	}
 
-	protected function _toJson(&$filter, $structLevel){
+	/**
+	 * @param Array $filter
+	 * @param int $structLevel
+	 * @param array $recordCallbacks
+	 * @return array
+	 */
+	protected function _toJson(Array &$filter, $structLevel, Array $recordCallbacks=null){
 		$struct = $this->structLevels[$structLevel];
 
 		$groupFieldIndex = $struct['groupField'];
@@ -94,6 +113,8 @@ class TArrayDataSet{
 		$values = array();
 		foreach($this->records as $key => $row){
 			if (!$filter[$key])
+				continue;
+			if (is_null($row[$groupFieldIndex]))
 				continue;
 			array_push($values, $row[$groupFieldIndex]);
 		}
@@ -118,7 +139,14 @@ class TArrayDataSet{
 						// копируем значения определённых структурой полей
 						foreach($struct['fields'] as $fIndex){
 							$fName = $this->fields[$fIndex];
-							$jRow[$fName] = $row[$fIndex];
+							$val = $row[$fIndex];
+							if (is_array($recordCallbacks)){
+								$callbackKey = $struct['name'].'.'.$fName;
+								if (array_key_exists($callbackKey, $recordCallbacks) && is_callable($recordCallbacks[$callbackKey])){
+									$val = call_user_func($recordCallbacks[$callbackKey], $val);
+								}
+							}
+							$jRow[$fName] = $val;
 						}
 						$fieldsWasSet = true; // больше копировать значения не будем
 					}
@@ -155,10 +183,11 @@ class TArrayDataSet{
 	 * T1:F1a(F1a,F1b)/T2*:F2a(F2a)/T3:F3a(F3a)<br>
 	 * @param Boolean $skipRoot если задано, то корневой элемент (верхнего уровня) будет пропущен, т.е. вернётся сразу
 	 * массив записей
-	 * @throws InvalidArgumentException
+	 * @param Array $recordCallbacks assoc. array: key - строка "levelName.fieldName" (levelName без пути, просто имя; fieldName - не groupField!), value - callback($val), должен вернуть новое значение
 	 * @return mixed
+	 * @throws LogicException, InvalidArgumentException
 	 */
-	public function toJson($struct, $skipRoot){
+	public function toJson($struct, $skipRoot, Array $recordCallbacks=null){
 		$this->assertData();
 
 		$re = '@([^\s()/:]+):([^\s()/:]+)\(([^()/:]+)\)@i';
@@ -194,8 +223,8 @@ class TArrayDataSet{
 			$filter[$i] = true;
 
 		if (!$skipRoot)
-			return array($this->structLevels[0]['name'] => $this->_toJson($filter, 0));
+			return array($this->structLevels[0]['name'] => $this->_toJson($filter, 0, $recordCallbacks));
 		else
-			return $this->_toJson($filter, 0);
+			return $this->_toJson($filter, 0, $recordCallbacks);
 	}
 }

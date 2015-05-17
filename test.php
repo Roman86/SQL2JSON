@@ -24,7 +24,12 @@ try{
 	// SET DATA
 	$ds->setData($data);
 	// GET JSON ARRAY
-	$json = $ds->toJson("animals:class(class,classdescr)/members:name*(food,weight,size,anger)", true);
+	$json = $ds->toJson("animals:class(class,classdescr)/members:name*(food,weight,size,anger)", true,
+		array('class' => function($val){
+				return ucfirst($val);
+			}
+		)
+	);
 
 	// You're done! Next steps are optional:
 	// debug it

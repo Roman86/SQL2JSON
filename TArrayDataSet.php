@@ -154,7 +154,7 @@ class TArrayDataSet{
 			}
 			if ($structLevel+1 < count($this->structLevels)){
 				$nextStructLevel = $structLevel+1;
-				$jRow[$this->structLevels[$nextStructLevel]['name']] = $this->_toJson($newFilter, $nextStructLevel);
+				$jRow[$this->structLevels[$nextStructLevel]['name']] = $this->_toJson($newFilter, $nextStructLevel, $recordCallbacks);
 			}
 			if ($stringKey)
 				$result[$groupFieldValue] = $jRow;

@@ -142,8 +142,8 @@ Array
 ####_recordCallbacks_ param
 This allows you to control fields' values output. For example:
 ```
-array('animals.class' => function($val){
-        return ucfirst($val);
+array('animals.class' => function($val, $values){
+        return ucfirst($val); // you can also use $values (associative array or the record)
     }
 )
 ```

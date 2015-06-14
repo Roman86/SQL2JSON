@@ -73,6 +73,20 @@ class TArrayDataSet{
 		$this->records = &$data['records'];
 	}
 
+	public function setDataFromCsv(Array &$csv){
+		if (gettype($csv) != 'array')
+			throw new InvalidArgumentException("csv should be of array type (first row is header)");
+		if (count($csv) < 2)
+			throw new InvalidArgumentException("csv array should contain at least 2 elements (first is header)");
+
+		$rows = [];
+		for ($i = 1, $cnt = count($csv); $i < $cnt; $i++)
+			array_push($rows, $csv[$i]);
+
+		$data = ['fields'=>$csv[0], 'records'=>$rows];
+		$this->setData($data);
+	}
+
 	/**
 	 * @throws LogicException
 	 */
@@ -143,7 +157,7 @@ class TArrayDataSet{
 							if (is_array($recordCallbacks)){
 								$callbackKey = $struct['name'].'.'.$fName;
 								if (array_key_exists($callbackKey, $recordCallbacks) && is_callable($recordCallbacks[$callbackKey])){
-									$val = call_user_func($recordCallbacks[$callbackKey], $val);
+									$val = call_user_func($recordCallbacks[$callbackKey], $val, array_combine($this->fields, $row));
 								}
 							}
 							$jRow[$fName] = $val;
